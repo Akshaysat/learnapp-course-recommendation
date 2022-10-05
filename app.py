@@ -83,7 +83,6 @@ if st.button("Create my Customized Learning Path"):
         with st.spinner("Creating Learning Path for " + name):
             time.sleep(1.5)
             st.header("")
-            st.header(name + "'s Learning Path")
 
             #store data in database
             url_email = "https://3749e8lxlf.execute-api.ap-south-1.amazonaws.com/"
@@ -91,6 +90,7 @@ if st.button("Create my Customized Learning Path"):
             headers_email = {'Content-Type': 'text/plain'}
             response = requests.request("POST", url_email, headers=headers_email, data = json.dumps(payload_email))
 
+            st.header(name + "'s Learning Path")
 
             # I just opened my demat account and I don’t know how stock market works
 

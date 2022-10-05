@@ -8,7 +8,7 @@ import requests
 curr_time_dec = time.localtime(time.time())
 date = time.strftime("%Y-%m-%d", curr_time_dec)
 
-st.title("Find courses on LearnApp that will help you achieve your trading goals 🎯")
+st.title("Find courses on LearnApp that will help achieve your trading goals 🎯")
 
 name = st.text_input("What's your name?")
 

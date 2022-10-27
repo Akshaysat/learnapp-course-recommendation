@@ -1,6 +1,8 @@
+import email
 import json
 from select import select
 import time
+from unicodedata import name
 import streamlit as st
 import requests
 
@@ -126,9 +128,9 @@ elif a == "I know how to automate trading strategies":
 if st.button("Create my Customized Learning Path"):
 
     if name == "":
-        st.error("Please enter a valid name")
+        st.error("Please enter a valid email ID")
     else:
-        with st.spinner("Creating Learning Path for " + name):
+        with st.spinner("Creating Learning Path for you"):
             time.sleep(1.5)
             st.header("")
 

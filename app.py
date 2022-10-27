@@ -12,7 +12,10 @@ date = time.strftime("%Y-%m-%d", curr_time_dec)
 
 st.title("Find courses on LearnApp that will help achieve your trading goals 🎯")
 
-name = st.text_input("Enter your LearnApp Registered Email ID?")
+name = st.text_input(
+    "Enter your LearnApp Registered Email ID",
+    help="Your data is safe with us. We do not spam or share data.",
+)
 
 a = st.selectbox(
     "Where I Stand?",
@@ -148,7 +151,7 @@ if st.button("Create my Customized Learning Path"):
                 "POST", url_email, headers=headers_email, data=json.dumps(payload_email)
             )
 
-            st.header(name + "'s Learning Path")
+            st.header("Your Personalized Learning Path")
 
             # I just opened my demat account and I don’t know how stock market works
 

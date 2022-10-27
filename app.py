@@ -10,7 +10,7 @@ date = time.strftime("%Y-%m-%d", curr_time_dec)
 
 st.title("Find courses on LearnApp that will help achieve your trading goals 🎯")
 
-name = st.text_input("What's your name?")
+name = st.text_input("Enter your LearnApp Registered Email ID?")
 
 a = st.selectbox(
     "Where I Stand?",

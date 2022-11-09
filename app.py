@@ -1486,6 +1486,7 @@ feature = st.radio(
     ("create new learning path", "my commited learning path"),
 )
 
+st.write("-----")
 if feature == "my commited learning path":
     # fetch user's learning paths
     try:

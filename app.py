@@ -1481,13 +1481,15 @@ name = st.text_input(
 )
 st.write("")
 
-feature = st.radio(
-    "What do you want to do?",
-    ("create new learning path", "my commited learning path"),
-)
-
+# feature = st.radio(
+#     "What do you want to do?",
+#     ("create new learning path", "my commited learning path"),
+# )
+tab1, tab2 = st.tabs(["Create New Learning Path", "My saved Learning Paths"])
 st.write("-----")
-if feature == "my commited learning path":
+
+with tab2:
+    st.write("")
     # fetch user's learning paths
     try:
         url_path = "https://3749e8lxlf.execute-api.ap-south-1.amazonaws.com/paths"
@@ -1504,24 +1506,23 @@ if feature == "my commited learning path":
         learning_paths = [i["lp_name"] for i in data]
 
         selected_path = st.selectbox(
-            "Choose one of your committed learning paths", learning_paths
+            "Choose one of your committed learning paths",
+            learning_paths,
+            help="Learning Path is a collection of courses on LearnApp which you need to complete step by step to achieve your trading goals",
         )
         st.write("-----")
 
         a1 = [i["where_i_stand"] for i in data if i["lp_name"] == selected_path]
         b1 = [i["where_i_want_to_be"] for i in data if i["lp_name"] == selected_path]
         st.subheader(f"🚀 Learning Path - {selected_path}")
-        with st.expander("What is a Learning Path?"):
-            st.write(
-                "Learning Path is a collection of courses on LearnApp which you need to complete serially to achieve your trading goals"
-            )
         st.write("-----")
         create_path(a1[0], b1[0])
     except:
         st.error("You haven't created any Learning Paths yet!")
 
 
-elif feature == "create new learning path":
+with tab1:
+    st.write("")
     a = st.selectbox(
         "Where I Stand?",
         (
@@ -1655,9 +1656,13 @@ elif feature == "create new learning path":
             "Name your Learning Path (ex: Learn Technical Anlaysis, Learn FNO, Learn Algo)",
             help="Make sure you use different name for different Learning Paths",
         )
+
     st.write("")
 
-    if st.button("Create my Learning Path"):
+    if st.button(
+        "Create my Learning Path",
+        help="Learning Path is a collection of courses on LearnApp which you need to complete step by step to achieve your trading goals",
+    ):
 
         if name == "":
             st.error("Please enter a valid email ID")
@@ -1690,9 +1695,5 @@ elif feature == "create new learning path":
                     )
                 st.write("-----")
                 st.subheader("🚀 Your Personalized Learning Path")
-                with st.expander("What is a Learning Path?"):
-                    st.write(
-                        "Learning Path is a collection of courses on LearnApp which you need to complete serially to achieve your trading goals"
-                    )
                 st.write("-----")
                 create_path(a, b)

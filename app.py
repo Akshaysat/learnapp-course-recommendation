@@ -6,6 +6,15 @@ from unicodedata import name
 import streamlit as st
 import requests
 
+# hide streamlit branding and hamburger menu
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # set today's date and time
 curr_time_dec = time.localtime(time.time())
 date = time.strftime("%Y-%m-%d", curr_time_dec)
@@ -1453,23 +1462,31 @@ def create_path(a, b):
         )
         st.write("")
 
+    st.image("logo.png", width=300)
 
-st.header("Find Courses on LearnApp that will help you achieve your trading goals 🎯")
-st.write("------")
 
-with st.sidebar:
-    st.image("logo.png")
-    st.write("-----")
-    name = st.text_input(
-        "Enter your LearnApp Registered Email Address",
-        help="We use your email address to track progress",
-    )
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.write("")
+with col2:
+    st.image("logo.png", width=225)
+    st.write("")
+with col3:
     st.write("")
 
-    feature = st.radio(
-        "What do you want to do?",
-        ("create new learning path", "my commited learning path"),
-    )
+
+# st.subheader("Find Courses on LearnApp that will help you achieve your trading goals 🎯")
+
+name = st.text_input(
+    "Enter your LearnApp Registered Email Address",
+    help="We use your email address to track progress",
+)
+st.write("")
+
+feature = st.radio(
+    "What do you want to do?",
+    ("create new learning path", "my commited learning path"),
+)
 
 if feature == "my commited learning path":
     # fetch user's learning paths

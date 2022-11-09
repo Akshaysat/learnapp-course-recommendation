@@ -22,10 +22,10 @@ date = time.strftime("%Y-%m-%d", curr_time_dec)
 # custom path function
 def create_path(a, b):
 
-    # I just opened my demat account and I don’t know how stock market works
+    # I just opened my demat account
 
     if (
-        a == "I just opened my demat account and I don’t know how stock market works"
+        a == "I just opened my demat account"
         and b == "I want to get started with trading"
     ):
 
@@ -60,7 +60,7 @@ def create_path(a, b):
         st.write("")
 
     elif (
-        a == "I just opened my demat account and I don’t know how stock market works"
+        a == "I just opened my demat account"
         and b == "I want to learn trading from scratch"
     ):
 
@@ -1462,8 +1462,6 @@ def create_path(a, b):
         )
         st.write("")
 
-    st.image("logo.png", width=300)
-
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -1526,7 +1524,7 @@ elif feature == "create new learning path":
     a = st.selectbox(
         "Where I Stand?",
         (
-            "I just opened my demat account and I don’t know how stock market works",
+            "I just opened my demat account",
             "I just know the basics of stock market",
             "I trade based on my gut feeling",
             "I know the basics of technical analysis",
@@ -1538,7 +1536,7 @@ elif feature == "create new learning path":
         ),
     )
 
-    if a == "I just opened my demat account and I don’t know how stock market works":
+    if a == "I just opened my demat account":
         st.write("")
         b = st.selectbox(
             "What I want to achieve?",

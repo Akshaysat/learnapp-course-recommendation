@@ -1473,8 +1473,11 @@ with col3:
     st.write("")
 
 
-# st.subheader("Find Courses on LearnApp that will help you achieve your trading goals 🎯")
-
+st.subheader("Want to make the most of your LearnApp Subscription? ")
+st.write(
+    "🎯 Use this tool to create your personalized learning path to help you reach your trading goals in the next 30 days"
+)
+st.write("-----")
 name = st.text_input(
     "Enter your LearnApp Registered Email Address",
     help="We use your email address to track progress",
@@ -1702,17 +1705,18 @@ with tab1:
             b1 = [
                 i["where_i_want_to_be"] for i in data if i["lp_name"] == selected_path
             ]
-            st.subheader("🚀 Your Personalized Learning Path")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.write("Need help completing this learning path?")
-            with col2:
-                st.subheader("➡➡➡➡➡➡➡")
-            with col3:
-                st.markdown(
-                    "[![Join our club](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-14-oct-22-la-announcement-ahmad-qureshi/e4a09bb4-2e6d-4ec4-8b94-34011ca24f2e.png)](https://join.slack.com/t/learnappsubscribers/shared_invite/zt-1j944zbnr-2rbea2tVYJJF_gNTOoq9Bg)"
-                )
-            st.write("-----")
-            create_path(a1[0], b1[0])
+            if selected_path != None:
+                st.subheader("🚀 Your Personalized Learning Path")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write("Need help completing this learning path?")
+                with col2:
+                    st.subheader("➡➡➡➡➡➡➡")
+                with col3:
+                    st.markdown(
+                        "[![Join our club](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-14-oct-22-la-announcement-ahmad-qureshi/e4a09bb4-2e6d-4ec4-8b94-34011ca24f2e.png)](https://join.slack.com/t/learnappsubscribers/shared_invite/zt-1j944zbnr-2rbea2tVYJJF_gNTOoq9Bg)"
+                    )
+                st.write("-----")
+                create_path(a1[0], b1[0])
         except:
             st.error("You haven't created any Learning Paths yet!")

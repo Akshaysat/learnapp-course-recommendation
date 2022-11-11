@@ -61,7 +61,7 @@ def create_path(a, b):
 
     elif (
         a == "I just opened my demat account"
-        and b == "I want to learn trading from scratch"
+        and b == "I want to dive deeper into technical analysis"
     ):
 
         st.subheader("1. Basics of Personal Finance")
@@ -88,9 +88,63 @@ def create_path(a, b):
         )
         st.write("")
 
-        st.subheader("5. Learn Intraday Strategy")
+        st.subheader("5. Support and Resistance")
         st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
+            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("6. Single Candlesticks")
+        st.markdown(
+            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("7. Multiple Candlestick Pattern")
+        st.markdown(
+            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("8. Trading Breakouts and Breakdowns")
+        st.markdown(
+            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("9. Trading Flags and Pennants")
+        st.markdown(
+            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("10. Reversal Patterns")
+        st.markdown(
+            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("11. Learn Trend Indicators")
+        st.markdown(
+            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("12. Learn How Trend Trading Works")
+        st.markdown(
+            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("13. Learn Momentum Indicators")
+        st.markdown(
+            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
+        )
+        st.write("")
+
+        st.subheader("14. Learn Volume Indicators")
+        st.markdown(
+            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
         )
         st.write("")
 
@@ -1484,10 +1538,6 @@ name = st.text_input(
 )
 st.write("")
 
-# feature = st.radio(
-#     "What do you want to do?",
-#     ("create new learning path", "my commited learning path"),
-# )
 tab1, tab2 = st.tabs(["Create New Learning Path", "My saved Learning Paths"])
 st.write("-----")
 
@@ -1514,7 +1564,7 @@ with tab1:
             "What I want to achieve?",
             (
                 "I want to get started with trading",
-                "I want to learn trading from scratch",
+                "I want to dive deeper into technical analysis",
             ),
         )
 
@@ -1622,10 +1672,47 @@ with tab1:
     )
     if commit:
         st.write("")
-        c = st.text_input(
-            "Name your Learning Path (ex: Learn Technical Anlaysis, Learn FNO, Learn Algo)",
-            help="Make sure you use different name for different Learning Paths",
-        )
+
+        if b == "I want to get started with trading":
+            c = "Get started with trading"
+
+        elif b == "I want to dive deeper into technical analysis":
+            c = "Learn Technical Anlaysis"
+
+        elif (
+            b
+            == "I want trading strategies that will help me become a profitable trader"
+        ):
+            c = "Equity Trading Strategies"
+
+        elif b == "I want to learn how FNO works":
+            c = "Learn FNO Basics"
+
+        elif (
+            b
+            == "I want FNO trading strategies that will help me become a profitable trader"
+        ):
+            c = "FNO Trading Strategies"
+
+        elif b == "I want to build my own trading strategy":
+            c = "Build my strategy"
+
+        elif (
+            b
+            == "I want to get better at managing my risks and psychology during trading"
+        ):
+            c = "Improve risk management and psychology"
+
+        elif b == "I want to learn how to backtest trading strategies":
+            c = "Learn Backtesting"
+
+        elif b == "I want to learn how to automate trading strategies":
+            c = "Learn Automation"
+
+        # c = st.text_input(
+        #     "Name your Learning Path (ex: Learn Technical Anlaysis, Learn FNO, Learn Algo)",
+        #     help="Make sure you use different name for different Learning Paths",
+        # )
 
     st.write("")
 

@@ -5,6 +5,7 @@ import time
 from unicodedata import name
 import streamlit as st
 import requests
+import pandas as pd
 
 # hide streamlit branding and hamburger menu
 hide_streamlit_style = """
@@ -19,7 +20,93 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 curr_time_dec = time.localtime(time.time())
 date = time.strftime("%Y-%m-%d", curr_time_dec)
 
-# custom path function
+# get learnapp's content data
+f = open("content.json")
+content_data = json.load(f)
+f.close()
+
+# functions for getting user specific course progress
+token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YjliODBkMC0yNDMyLTExZWItYjI2NS0zYjBiYWNkOGE1ZjYiLCJpcCI6IjQ5LjI0OS42OS4yMiwgMTMwLjE3Ni4xODguMjAxIiwiY291bnRyeSI6IklOIiwiaWF0IjoxNjY4NTI4NzM4LCJleHAiOjE2NjkxMzM1MzgsImF1ZCI6ImxlYXJuYXBwIiwiaXNzIjoiaHlkcmE6MC4wLjEifQ.Yoju0P7APALdGx2VQewvwAQzZRcrGoNGsDw9wXnvy0s"
+
+
+def fetch_userid(email):
+    email = email.replace("@", "%40")
+    url = "https://hydra.prod.learnapp.com/kraken/users/search?q=" + email
+
+    payload = {}
+    headers = {
+        "authorization": token,
+        "x-api-key": "u36jbrsUjD8v5hx2zHdZNwqGA6Kz7gsm",
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    try:
+        data = json.loads(response.text)["users"][0]
+        try:
+            return data["userId"]
+        except:
+            return -1
+    except:
+        return -1
+
+
+def course_progress(email_id, course_id):
+    try:
+        user_id = fetch_userid(email_id)
+        url = f"https://census.prod.learnapp.com/kraken/users/{user_id}/courses/{course_id}"
+        payload = {}
+        headers = {
+            "authorization": token,
+            "x-api-key": "Ch2rqJp3rxH8ZVccQT8ywV7zMR3Ac8fQ",
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        data = json.loads(response.text)
+        progress = data["courseDetailData"]["percentage"]
+    except:
+        progress = 0
+
+    return progress
+
+
+# function for creating the course cards
+def course_container(course_key):
+
+    st.subheader(f"📘 {content_data[course_key]['title']}")
+    canonical_title = content_data[course_key]["canonicalTitle"]
+    course_id = content_data[course_key]["id"]
+    progress = course_progress(name, course_id)
+    if progress == 100:
+        progress = f"✅ {progress}"
+    else:
+        progress = f"📖 {progress}"
+    course_url = (
+        f"https://learnapp.com/courses/{canonical_title}/topics/trailer?locale=en-us"
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(
+            content_data[course_key]["assetUrl"],
+            width=300,
+        )
+
+    with col2:
+
+        st.write("")
+        st.write("")
+        st.write("")
+        st.write("")
+        st.write("")
+        st.markdown(
+            f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+        )
+        st.caption(f"{progress}% completed")
+
+    st.write("")
+
+
+# personalized path function
 def create_path(a, b):
 
     # I just opened my demat account
@@ -29,124 +116,67 @@ def create_path(a, b):
         and b == "I want to get started with trading"
     ):
 
-        st.subheader("1. Basics of Personal Finance")
-        st.markdown(
-            "[![Basics of Personal Finance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Personal+Finance.jpeg)](https://learnapp.com/courses/basics-of-personal-finance/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-personal-finance"
+        course_container(course_key)
 
-        st.subheader("2. Learn How Capital Market Works")
-        st.markdown(
-            "[![Basics of Personal Finance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Capital+Market+Works.jpeg)](https://learnapp.com/courses/learn-how-capital-markets-work/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-capital-markets-work"
+        course_container(course_key)
 
-        st.subheader("3. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("4. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("5. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
     elif (
         a == "I just opened my demat account"
         and b == "I want to dive deeper into technical analysis"
     ):
 
-        st.subheader("1. Basics of Personal Finance")
-        st.markdown(
-            "[![Basics of Personal Finance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Personal+Finance.jpeg)](https://learnapp.com/courses/basics-of-personal-finance/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-personal-finance"
+        course_container(course_key)
 
-        st.subheader("2. Learn How Capital Market Works")
-        st.markdown(
-            "[![Basics of Personal Finance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Capital+Market+Works.jpeg)](https://learnapp.com/courses/learn-how-capital-markets-work/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-capital-markets-work"
+        course_container(course_key)
 
-        st.subheader("3. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("4. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("5. Support and Resistance")
-        st.markdown(
-            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "support-resistance-"
+        course_container(course_key)
 
-        st.subheader("6. Single Candlesticks")
-        st.markdown(
-            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "single-candlesticks"
+        course_container(course_key)
 
-        st.subheader("7. Multiple Candlestick Pattern")
-        st.markdown(
-            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "multiple-candlestick-pattern"
+        course_container(course_key)
 
-        st.subheader("8. Trading Breakouts and Breakdowns")
-        st.markdown(
-            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-breakouts-and-breakdowns"
+        course_container(course_key)
 
-        st.subheader("9. Trading Flags and Pennants")
-        st.markdown(
-            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-flags-and-pennants"
+        course_container(course_key)
 
-        st.subheader("10. Reversal Patterns")
-        st.markdown(
-            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "reversal-patterns"
+        course_container(course_key)
 
-        st.subheader("11. Learn Trend Indicators")
-        st.markdown(
-            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-trend-indicators"
+        course_container(course_key)
 
-        st.subheader("12. Learn How Trend Trading Works")
-        st.markdown(
-            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-trend-trading-works"
+        course_container(course_key)
 
-        st.subheader("13. Learn Momentum Indicators")
-        st.markdown(
-            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-momentum-indicators"
+        course_container(course_key)
 
-        st.subheader("14. Learn Volume Indicators")
-        st.markdown(
-            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-volume-indicators-"
+        course_container(course_key)
 
     # I just know the basics of stock market
 
@@ -155,106 +185,58 @@ def create_path(a, b):
         and b == "I want to get started with trading"
     ):
 
-        st.subheader("1. Basics of Personal Finance")
-        st.markdown(
-            "[![Basics of Personal Finance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Personal+Finance.jpeg)](https://learnapp.com/courses/basics-of-personal-finance/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-personal-finance"
+        course_container(course_key)
 
-        st.subheader("2. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-capital-markets-work"
+        course_container(course_key)
 
-        st.subheader("3. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("4. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
     elif (
         a == "I just know the basics of stock market"
         and b == "I want to dive deeper into technical analysis"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("3. Support and Resistance")
-        st.markdown(
-            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "support-resistance-"
+        course_container(course_key)
 
-        st.subheader("4. Single Candlesticks")
-        st.markdown(
-            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "single-candlesticks"
+        course_container(course_key)
 
-        st.subheader("5. Multiple Candlestick Pattern")
-        st.markdown(
-            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "multiple-candlestick-pattern"
+        course_container(course_key)
 
-        st.subheader("6. Trading Breakouts and Breakdowns")
-        st.markdown(
-            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-breakouts-and-breakdowns"
+        course_container(course_key)
 
-        st.subheader("7. Trading Flags and Pennants")
-        st.markdown(
-            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-flags-and-pennants"
+        course_container(course_key)
 
-        st.subheader("8. Reversal Patterns")
-        st.markdown(
-            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "reversal-patterns"
+        course_container(course_key)
 
-        st.subheader("9. Learn Trend Indicators")
-        st.markdown(
-            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-trend-indicators"
+        course_container(course_key)
 
-        st.subheader("10. Learn How Trend Trading Works")
-        st.markdown(
-            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-trend-trading-works"
+        course_container(course_key)
 
-        st.subheader("11. Learn Momentum Indicators")
-        st.markdown(
-            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-momentum-indicators"
+        course_container(course_key)
 
-        st.subheader("12. Learn Volume Indicators")
-        st.markdown(
-            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-volume-indicators-"
+        course_container(course_key)
 
     elif (
         a == "I just know the basics of stock market"
@@ -262,41 +244,23 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     # I trade based on my gut feeling
 
@@ -305,77 +269,41 @@ def create_path(a, b):
         and b == "I want to dive deeper into technical analysis"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("3. Support and Resistance")
-        st.markdown(
-            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "support-resistance-"
+        course_container(course_key)
 
-        st.subheader("4. Single Candlesticks")
-        st.markdown(
-            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "single-candlesticks"
+        course_container(course_key)
 
-        st.subheader("5. Multiple Candlestick Pattern")
-        st.markdown(
-            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "multiple-candlestick-pattern"
+        course_container(course_key)
 
-        st.subheader("6. Trading Breakouts and Breakdowns")
-        st.markdown(
-            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-breakouts-and-breakdowns"
+        course_container(course_key)
 
-        st.subheader("7. Trading Flags and Pennants")
-        st.markdown(
-            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-flags-and-pennants"
+        course_container(course_key)
 
-        st.subheader("8. Reversal Patterns")
-        st.markdown(
-            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "reversal-patterns"
+        course_container(course_key)
 
-        st.subheader("9. Learn Trend Indicators")
-        st.markdown(
-            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-trend-indicators"
+        course_container(course_key)
 
-        st.subheader("10. Learn How Trend Trading Works")
-        st.markdown(
-            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-trend-trading-works"
+        course_container(course_key)
 
-        st.subheader("11. Learn Momentum Indicators")
-        st.markdown(
-            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-momentum-indicators"
+        course_container(course_key)
 
-        st.subheader("12. Learn Volume Indicators")
-        st.markdown(
-            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-volume-indicators-"
+        course_container(course_key)
 
     elif (
         a == "I trade based on my gut feeling"
@@ -383,41 +311,23 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     # I know the basics of technical analysis
 
@@ -426,77 +336,41 @@ def create_path(a, b):
         and b == "I want to dive deeper into technical analysis"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Intro to technical Analysis")
-        st.markdown(
-            "[![Intro to technical Analysis](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Technical+Analysis.jpeg)](https://learnapp.com/courses/intro-to-technical-analysis/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-technical-analysis"
+        course_container(course_key)
 
-        st.subheader("3. Support and Resistance")
-        st.markdown(
-            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "support-resistance-"
+        course_container(course_key)
 
-        st.subheader("4. Single Candlesticks")
-        st.markdown(
-            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "single-candlesticks"
+        course_container(course_key)
 
-        st.subheader("5. Multiple Candlestick Pattern")
-        st.markdown(
-            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "multiple-candlestick-pattern"
+        course_container(course_key)
 
-        st.subheader("6. Trading Breakouts and Breakdowns")
-        st.markdown(
-            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-breakouts-and-breakdowns"
+        course_container(course_key)
 
-        st.subheader("7. Trading Flags and Pennants")
-        st.markdown(
-            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-flags-and-pennants"
+        course_container(course_key)
 
-        st.subheader("8. Reversal Patterns")
-        st.markdown(
-            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "reversal-patterns"
+        course_container(course_key)
 
-        st.subheader("9. Learn Trend Indicators")
-        st.markdown(
-            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-trend-indicators"
+        course_container(course_key)
 
-        st.subheader("10. Learn How Trend Trading Works")
-        st.markdown(
-            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-trend-trading-works"
+        course_container(course_key)
 
-        st.subheader("11. Learn Momentum Indicators")
-        st.markdown(
-            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-momentum-indicators"
+        course_container(course_key)
 
-        st.subheader("12. Learn Volume Indicators")
-        st.markdown(
-            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-volume-indicators-"
+        course_container(course_key)
 
     elif (
         a == "I know the basics of technical analysis"
@@ -504,82 +378,46 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     elif (
         a == "I know the basics of technical analysis"
         and b == "I want to learn how FNO works"
     ):
 
-        st.subheader("1. Intro to Futures and Options")
-        st.markdown(
-            "[![Intro to Futures and Options](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Futures+and+Options.jpeg)](https://learnapp.com/courses/intro-to-futures-and-options/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-futures-and-options"
+        course_container(course_key)
 
-        st.subheader("2. Basics of Options")
-        st.markdown(
-            "[![Basics of Options](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Options.jpeg)](https://learnapp.com/courses/basics-of-options/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-options"
+        course_container(course_key)
 
-        st.subheader("3. Basics of Options II")
-        st.markdown(
-            "[![Basics of Options II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Options+II.jpeg)](https://learnapp.com/courses/basics-of-options-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-options-ii"
+        course_container(course_key)
 
-        st.subheader("4. Option Spreads and Option Chain")
-        st.markdown(
-            "[![Option Spreads and Option Chain](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Spreads+and+Option+Chain.jpeg)](https://learnapp.com/courses/option-spreads-and-option-chain/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-spreads-and-option-chain"
+        course_container(course_key)
 
-        st.subheader("5. Straddles and Strangles")
-        st.markdown(
-            "[![Straddles and Strangles](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Straddles+and+Strangles.jpeg)](https://learnapp.com/courses/straddles-and-strangles/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "straddles-and-strangles"
+        course_container(course_key)
 
-        st.subheader("6. Iron Condors, Butterfly and Calendar Spreads")
-        st.markdown(
-            "[![Iron Condors, Butterfly and Calendar Spreads](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Iron+Condors%2C+Butterfly+and+Calendar+Spreads.jpeg)](https://learnapp.com/courses/iron-condors-butterfly-and-calendar-spreads/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "iron-condors-butterfly-and-calendar-spreads"
+        course_container(course_key)
 
     # I trade systematic trading strategies manually
 
@@ -588,65 +426,35 @@ def create_path(a, b):
         and b == "I want to dive deeper into technical analysis"
     ):
 
-        st.subheader("1. Support and Resistance")
-        st.markdown(
-            "[![Support and Resistance](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Support+and+Resistance.jpeg)](https://learnapp.com/courses/support-resistance-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "support-resistance-"
+        course_container(course_key)
 
-        st.subheader("2. Single Candlesticks")
-        st.markdown(
-            "[![Single Candlesticks](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Single+Candlesticks.jpeg)](https://learnapp.com/courses/single-candlesticks/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "single-candlesticks"
+        course_container(course_key)
 
-        st.subheader("3. Multiple Candlestick Pattern")
-        st.markdown(
-            "[![Multiple Candlestick Pattern](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Multiple+Candlestick+Pattern.jpeg)](https://learnapp.com/courses/multiple-candlestick-pattern/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "multiple-candlestick-pattern"
+        course_container(course_key)
 
-        st.subheader("4. Trading Breakouts and Breakdowns")
-        st.markdown(
-            "[![Trading Breakouts and Breakdowns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Breakouts+and+Breakdowns.jpeg)](https://learnapp.com/courses/trading-breakouts-and-breakdowns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-breakouts-and-breakdowns"
+        course_container(course_key)
 
-        st.subheader("5. Trading Flags and Pennants")
-        st.markdown(
-            "[![Trading Flags and Pennants](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Flags+and+Pennants.jpeg)](https://learnapp.com/courses/trading-flags-and-pennants/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-flags-and-pennants"
+        course_container(course_key)
 
-        st.subheader("6. Reversal Patterns")
-        st.markdown(
-            "[![Reversal Patterns](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Reversal+Patterns.jpeg)](https://learnapp.com/courses/reversal-patterns/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "reversal-patterns"
+        course_container(course_key)
 
-        st.subheader("7. Learn Trend Indicators")
-        st.markdown(
-            "[![Learn Trend Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Trend+Indicators.jpeg)](https://learnapp.com/courses/learn-trend-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-trend-indicators"
+        course_container(course_key)
 
-        st.subheader("8. Learn How Trend Trading Works")
-        st.markdown(
-            "[![Learn How Trend Trading Works](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+How+Trend+Trading+Works.jpeg)](https://learnapp.com/courses/learn-how-trend-trading-works/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-how-trend-trading-works"
+        course_container(course_key)
 
-        st.subheader("9. Learn Momentum Indicators")
-        st.markdown(
-            "[![Learn Momentum Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Momentum+Indicators.jpeg)](https://learnapp.com/courses/learn-momentum-indicators/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-momentum-indicators"
+        course_container(course_key)
 
-        st.subheader("10. Learn Volume Indicators")
-        st.markdown(
-            "[![Learn Volume Indicators](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Volume+Indicators.jpeg)](https://learnapp.com/courses/learn-volume-indicators-/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-volume-indicators-"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
@@ -654,82 +462,46 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
         and b == "I want to learn how FNO works"
     ):
 
-        st.subheader("1. Intro to Futures and Options")
-        st.markdown(
-            "[![Intro to Futures and Options](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intro+to+Futures+and+Options.jpeg)](https://learnapp.com/courses/intro-to-futures-and-options/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intro-to-futures-and-options"
+        course_container(course_key)
 
-        st.subheader("2. Basics of Options")
-        st.markdown(
-            "[![Basics of Options](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Options.jpeg)](https://learnapp.com/courses/basics-of-options/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-options"
+        course_container(course_key)
 
-        st.subheader("3. Basics of Options II")
-        st.markdown(
-            "[![Basics of Options II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Options+II.jpeg)](https://learnapp.com/courses/basics-of-options-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-options-ii"
+        course_container(course_key)
 
-        st.subheader("4. Option Spreads and Option Chain")
-        st.markdown(
-            "[![Option Spreads and Option Chain](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Spreads+and+Option+Chain.jpeg)](https://learnapp.com/courses/option-spreads-and-option-chain/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-spreads-and-option-chain"
+        course_container(course_key)
 
-        st.subheader("5. Straddles and Strangles")
-        st.markdown(
-            "[![Straddles and Strangles](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Straddles+and+Strangles.jpeg)](https://learnapp.com/courses/straddles-and-strangles/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "straddles-and-strangles"
+        course_container(course_key)
 
-        st.subheader("6. Iron Condors, Butterfly and Calendar Spreads")
-        st.markdown(
-            "[![Iron Condors, Butterfly and Calendar Spreads](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Iron+Condors%2C+Butterfly+and+Calendar+Spreads.jpeg)](https://learnapp.com/courses/iron-condors-butterfly-and-calendar-spreads/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "iron-condors-butterfly-and-calendar-spreads"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
@@ -737,88 +509,49 @@ def create_path(a, b):
         == "I want FNO trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. BankNifty Weekly Options Strategy")
-        st.markdown(
-            "[![BankNifty Weekly Options Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/BankNifty+Weekly+Options+Strategy.jpeg)](https://learnapp.com/courses/banknifty-weekly-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "banknifty-weekly-options-strategy"
+        course_container(course_key)
 
-        st.subheader("2. Intraday Banknifty Straddle Strategy")
-        st.markdown(
-            "[![Intraday Banknifty Straddle Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Banknifty+Straddle+Strategy.jpeg)](https://learnapp.com/courses/intraday-banknifty-straddle-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-banknifty-straddle-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Intraday Expiry Trading Strategy")
-        st.markdown(
-            "[![Intraday Expiry Trading Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Expiry+Trading+Strategy.jpeg)](https://learnapp.com/courses/intraday-expiry-trading-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-expiry-trading-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Nifty Hedged Short Strangle")
-        st.markdown(
-            "[![Nifty Hedged Short Strangle](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Nifty+Hedged+Short+Strangle.jpeg)](https://learnapp.com/courses/nifty-hedged-short-strangle/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "nifty-hedged-short-strangle"
+        course_container(course_key)
 
-        st.subheader("5. Index Futures Intraday Strategy")
-        st.markdown(
-            "[![Index Futures Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Index+Futures+Intraday+Strategy.jpeg)](https://learnapp.com/courses/index-futures-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "index-futures-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Intraday Option Buying Strategy")
-        st.markdown(
-            "[![Intraday Option Buying Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Option+Buying+Strategy.jpeg)](https://learnapp.com/courses/intraday-option-buying-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-option-buying-strategy"
+        course_container(course_key)
 
-        st.subheader("7. Positional Banknifty Options Stratgey")
-        st.markdown(
-            "[![Positional Banknifty Options Stratgey](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Positional+Banknifty+Options+Stratgey.jpeg)](https://learnapp.com/courses/positional-banknifty-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "positional-banknifty-options-strategy"
+        course_container(course_key)
 
-        st.subheader("8. Option Buying Momentum Strategy")
-        st.markdown(
-            "[![Option Buying Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Buying+Momentum+Strategy.jpeg)](https://learnapp.com/courses/option-buying-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-buying-momentum-strategyy"
+        course_container(course_key)
 
-        st.subheader("9. Learn an Options Writing Strategy")
-        st.markdown(
-            "[![Learn an Options Writing Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+an+Options+Writing+Strategy.jpeg)](https://learnapp.com/courses/learn-an-options-writing-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-an-options-writing-strategy"
+        course_container(course_key)
 
-        st.subheader("10. Options Program with Backtested Strategies")
-        st.markdown(
-            "[![Options Program with Backtested Strategies](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Options+Program+with+Backtested+Strategies.jpeg)](https://learnapp.com/advanced-courses/options-program-with-backtested-strategies?locale=en-us)"
-        )
-        st.write("")
+        course_key = "options-program-with-backtested-strategies"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
         and b == "I want to build my own trading strategy"
     ):
 
-        st.subheader("1. Build Your Trading System")
-        st.markdown(
-            "[![Build Your Trading System](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Build+Your+Trading+System.jpeg)](https://learnapp.com/courses/build-your-trading-system/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "build-your-trading-system"
+        course_container(course_key)
 
-        st.subheader("2. Basics of Backtesting")
-        st.markdown(
-            "[![Basics of Backtesting](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Backtesting.jpeg)](https://learnapp.com/courses/basics-of-backtesting/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-backtesting"
+        course_container(course_key)
 
-        st.subheader("3. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
@@ -826,22 +559,42 @@ def create_path(a, b):
         == "I want to get better at managing my risks and psychology during trading"
     ):
 
-        st.subheader("1. Trading Podcasts")
-        st.markdown(
-            "[![Trading Podcasts](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcasts.jpeg)](https://learnapp.com/courses/trading-podcasts/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcasts"
+        course_container(course_key)
 
-        st.subheader("2. Trading Podcast II")
-        st.markdown(
-            "[![Trading Podcast II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcast+II.jpeg)](https://learnapp.com/courses/trading-podcast-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcast-ii"
+        course_container(course_key)
 
-        st.subheader("3. Psychology and Journals")
-        st.markdown(
-            "[![Psychology and Journals](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Psychology+and+Journals.jpg)](https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us)"
-        )
+        course_key = "psychology-and-journals"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
     elif (
@@ -849,52 +602,118 @@ def create_path(a, b):
         and b == "I want to learn how to backtest trading strategies"
     ):
 
-        st.subheader("1. Basics of Backtesting")
-        st.markdown(
-            "[![Basics of Backtesting](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Backtesting.jpeg)](https://learnapp.com/courses/basics-of-backtesting/topics/trailer?locale=en-us)"
-        )
+        course_key = "basics-of-backtesting"
+        course_container(course_key)
+
+        course_key = "trading-and-excel"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("2. Trading and Excel")
-        st.markdown(
-            "[![Trading and Excel](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+and+Excel.jpg)](https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---i"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("3. Backtesting Stocks with Indicators - I")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - I](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+I.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---ii"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = "https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("4. Backtesting Stocks with Indicators - II")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+II.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us)"
-        )
-        st.write("")
-
-        st.subheader("5. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
     elif (
         a == "I trade systematic trading strategies manually"
         and b == "I want to learn how to automate trading strategies"
     ):
 
-        st.subheader("1. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
-        st.subheader("2. Python Algo Execution Programme")
-        st.markdown(
-            "[![Python Algo Execution Programme](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Python+Algo+Execution+Programme.jpg)](https://learnapp.com/advanced-courses/python-algo-execution-programme?locale=en-us)"
-        )
-        st.write("")
+        course_key = "python-algo-execution-programme"
+        course_container(course_key)
 
     # I know the basics of futures and options
 
@@ -904,65 +723,35 @@ def create_path(a, b):
         == "I want FNO trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. BankNifty Weekly Options Strategy")
-        st.markdown(
-            "[![BankNifty Weekly Options Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/BankNifty+Weekly+Options+Strategy.jpeg)](https://learnapp.com/courses/banknifty-weekly-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "banknifty-weekly-options-strategy"
+        course_container(course_key)
 
-        st.subheader("2. Intraday Banknifty Straddle Strategy")
-        st.markdown(
-            "[![Intraday Banknifty Straddle Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Banknifty+Straddle+Strategy.jpeg)](https://learnapp.com/courses/intraday-banknifty-straddle-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-banknifty-straddle-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Intraday Expiry Trading Strategy")
-        st.markdown(
-            "[![Intraday Expiry Trading Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Expiry+Trading+Strategy.jpeg)](https://learnapp.com/courses/intraday-expiry-trading-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-expiry-trading-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Nifty Hedged Short Strangle")
-        st.markdown(
-            "[![Nifty Hedged Short Strangle](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Nifty+Hedged+Short+Strangle.jpeg)](https://learnapp.com/courses/nifty-hedged-short-strangle/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "nifty-hedged-short-strangle"
+        course_container(course_key)
 
-        st.subheader("5. Index Futures Intraday Strategy")
-        st.markdown(
-            "[![Index Futures Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Index+Futures+Intraday+Strategy.jpeg)](https://learnapp.com/courses/index-futures-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "index-futures-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Intraday Option Buying Strategy")
-        st.markdown(
-            "[![Intraday Option Buying Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Option+Buying+Strategy.jpeg)](https://learnapp.com/courses/intraday-option-buying-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-option-buying-strategy"
+        course_container(course_key)
 
-        st.subheader("7. Positional Banknifty Options Stratgey")
-        st.markdown(
-            "[![Positional Banknifty Options Stratgey](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Positional+Banknifty+Options+Stratgey.jpeg)](https://learnapp.com/courses/positional-banknifty-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "positional-banknifty-options-strategy"
+        course_container(course_key)
 
-        st.subheader("8. Option Buying Momentum Strategy")
-        st.markdown(
-            "[![Option Buying Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Buying+Momentum+Strategy.jpeg)](https://learnapp.com/courses/option-buying-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-buying-momentum-strategyy"
+        course_container(course_key)
 
-        st.subheader("9. Learn an Options Writing Strategy")
-        st.markdown(
-            "[![Learn an Options Writing Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+an+Options+Writing+Strategy.jpeg)](https://learnapp.com/courses/learn-an-options-writing-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-an-options-writing-strategy"
+        course_container(course_key)
 
-        st.subheader("10. Options Program with Backtested Strategies")
-        st.markdown(
-            "[![Options Program with Backtested Strategies](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Options+Program+with+Backtested+Strategies.jpeg)](https://learnapp.com/advanced-courses/options-program-with-backtested-strategies?locale=en-us)"
-        )
-        st.write("")
+        course_key = "options-program-with-backtested-strategies"
+        course_container(course_key)
 
     elif (
         a == "I know the basics of futures and options"
@@ -970,22 +759,42 @@ def create_path(a, b):
         == "I want to get better at managing my risks and psychology during trading"
     ):
 
-        st.subheader("1. Trading Podcasts")
-        st.markdown(
-            "[![Trading Podcasts](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcasts.jpeg)](https://learnapp.com/courses/trading-podcasts/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcasts"
+        course_container(course_key)
 
-        st.subheader("2. Trading Podcast II")
-        st.markdown(
-            "[![Trading Podcast II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcast+II.jpeg)](https://learnapp.com/courses/trading-podcast-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcast-ii"
+        course_container(course_key)
 
-        st.subheader("3. Psychology and Journals")
-        st.markdown(
-            "[![Psychology and Journals](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Psychology+and+Journals.jpg)](https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us)"
-        )
+        course_key = "psychology-and-journals"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
     # I have my own trading strategy
@@ -996,41 +805,23 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     elif (
         a == "I have my own trading strategy"
@@ -1038,65 +829,35 @@ def create_path(a, b):
         == "I want FNO trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. BankNifty Weekly Options Strategy")
-        st.markdown(
-            "[![BankNifty Weekly Options Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/BankNifty+Weekly+Options+Strategy.jpeg)](https://learnapp.com/courses/banknifty-weekly-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "banknifty-weekly-options-strategy"
+        course_container(course_key)
 
-        st.subheader("2. Intraday Banknifty Straddle Strategy")
-        st.markdown(
-            "[![Intraday Banknifty Straddle Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Banknifty+Straddle+Strategy.jpeg)](https://learnapp.com/courses/intraday-banknifty-straddle-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-banknifty-straddle-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Intraday Expiry Trading Strategy")
-        st.markdown(
-            "[![Intraday Expiry Trading Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Expiry+Trading+Strategy.jpeg)](https://learnapp.com/courses/intraday-expiry-trading-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-expiry-trading-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Nifty Hedged Short Strangle")
-        st.markdown(
-            "[![Nifty Hedged Short Strangle](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Nifty+Hedged+Short+Strangle.jpeg)](https://learnapp.com/courses/nifty-hedged-short-strangle/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "nifty-hedged-short-strangle"
+        course_container(course_key)
 
-        st.subheader("5. Index Futures Intraday Strategy")
-        st.markdown(
-            "[![Index Futures Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Index+Futures+Intraday+Strategy.jpeg)](https://learnapp.com/courses/index-futures-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "index-futures-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Intraday Option Buying Strategy")
-        st.markdown(
-            "[![Intraday Option Buying Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Option+Buying+Strategy.jpeg)](https://learnapp.com/courses/intraday-option-buying-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-option-buying-strategy"
+        course_container(course_key)
 
-        st.subheader("7. Positional Banknifty Options Stratgey")
-        st.markdown(
-            "[![Positional Banknifty Options Stratgey](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Positional+Banknifty+Options+Stratgey.jpeg)](https://learnapp.com/courses/positional-banknifty-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "positional-banknifty-options-strategy"
+        course_container(course_key)
 
-        st.subheader("8. Option Buying Momentum Strategy")
-        st.markdown(
-            "[![Option Buying Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Buying+Momentum+Strategy.jpeg)](https://learnapp.com/courses/option-buying-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-buying-momentum-strategyy"
+        course_container(course_key)
 
-        st.subheader("9. Learn an Options Writing Strategy")
-        st.markdown(
-            "[![Learn an Options Writing Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+an+Options+Writing+Strategy.jpeg)](https://learnapp.com/courses/learn-an-options-writing-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-an-options-writing-strategy"
+        course_container(course_key)
 
-        st.subheader("10. Options Program with Backtested Strategies")
-        st.markdown(
-            "[![Options Program with Backtested Strategies](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Options+Program+with+Backtested+Strategies.jpeg)](https://learnapp.com/advanced-courses/options-program-with-backtested-strategies?locale=en-us)"
-        )
-        st.write("")
+        course_key = "options-program-with-backtested-strategies"
+        course_container(course_key)
 
     elif (
         a == "I have my own trading strategy"
@@ -1104,22 +865,42 @@ def create_path(a, b):
         == "I want to get better at managing my risks and psychology during trading"
     ):
 
-        st.subheader("1. Trading Podcasts")
-        st.markdown(
-            "[![Trading Podcasts](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcasts.jpeg)](https://learnapp.com/courses/trading-podcasts/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcasts"
+        course_container(course_key)
 
-        st.subheader("2. Trading Podcast II")
-        st.markdown(
-            "[![Trading Podcast II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcast+II.jpeg)](https://learnapp.com/courses/trading-podcast-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcast-ii"
+        course_container(course_key)
 
-        st.subheader("3. Psychology and Journals")
-        st.markdown(
-            "[![Psychology and Journals](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Psychology+and+Journals.jpg)](https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us)"
-        )
+        course_key = "psychology-and-journals"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
     elif (
@@ -1127,52 +908,118 @@ def create_path(a, b):
         and b == "I want to learn how to backtest trading strategies"
     ):
 
-        st.subheader("1. Basics of Backtesting")
-        st.markdown(
-            "[![Basics of Backtesting](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Backtesting.jpeg)](https://learnapp.com/courses/basics-of-backtesting/topics/trailer?locale=en-us)"
-        )
+        course_key = "basics-of-backtesting"
+        course_container(course_key)
+
+        course_key = "trading-and-excel"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("2. Trading and Excel")
-        st.markdown(
-            "[![Trading and Excel](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+and+Excel.jpg)](https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---i"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("3. Backtesting Stocks with Indicators - I")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - I](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+I.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---ii"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = "https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("4. Backtesting Stocks with Indicators - II")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+II.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us)"
-        )
-        st.write("")
-
-        st.subheader("5. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
     elif (
         a == "I have my own trading strategy"
         and b == "I want to learn how to automate trading strategies"
     ):
 
-        st.subheader("1. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
-        st.subheader("2. Python Algo Execution Programme")
-        st.markdown(
-            "[![Python Algo Execution Programme](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Python+Algo+Execution+Programme.jpg)](https://learnapp.com/advanced-courses/python-algo-execution-programme?locale=en-us)"
-        )
-        st.write("")
+        course_key = "python-algo-execution-programme"
+        course_container(course_key)
 
     # I know how to backtest trading strategies
 
@@ -1182,41 +1029,23 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     elif (
         a == "I know how to backtest trading strategies"
@@ -1224,76 +1053,43 @@ def create_path(a, b):
         == "I want FNO trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. BankNifty Weekly Options Strategy")
-        st.markdown(
-            "[![BankNifty Weekly Options Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/BankNifty+Weekly+Options+Strategy.jpeg)](https://learnapp.com/courses/banknifty-weekly-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "banknifty-weekly-options-strategy"
+        course_container(course_key)
 
-        st.subheader("2. Intraday Banknifty Straddle Strategy")
-        st.markdown(
-            "[![Intraday Banknifty Straddle Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Banknifty+Straddle+Strategy.jpeg)](https://learnapp.com/courses/intraday-banknifty-straddle-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-banknifty-straddle-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Intraday Expiry Trading Strategy")
-        st.markdown(
-            "[![Intraday Expiry Trading Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Expiry+Trading+Strategy.jpeg)](https://learnapp.com/courses/intraday-expiry-trading-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-expiry-trading-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Nifty Hedged Short Strangle")
-        st.markdown(
-            "[![Nifty Hedged Short Strangle](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Nifty+Hedged+Short+Strangle.jpeg)](https://learnapp.com/courses/nifty-hedged-short-strangle/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "nifty-hedged-short-strangle"
+        course_container(course_key)
 
-        st.subheader("5. Index Futures Intraday Strategy")
-        st.markdown(
-            "[![Index Futures Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Index+Futures+Intraday+Strategy.jpeg)](https://learnapp.com/courses/index-futures-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "index-futures-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Intraday Option Buying Strategy")
-        st.markdown(
-            "[![Intraday Option Buying Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Option+Buying+Strategy.jpeg)](https://learnapp.com/courses/intraday-option-buying-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-option-buying-strategy"
+        course_container(course_key)
 
-        st.subheader("7. Positional Banknifty Options Stratgey")
-        st.markdown(
-            "[![Positional Banknifty Options Stratgey](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Positional+Banknifty+Options+Stratgey.jpeg)](https://learnapp.com/courses/positional-banknifty-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "positional-banknifty-options-strategy"
+        course_container(course_key)
 
-        st.subheader("8. Option Buying Momentum Strategy")
-        st.markdown(
-            "[![Option Buying Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Buying+Momentum+Strategy.jpeg)](https://learnapp.com/courses/option-buying-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-buying-momentum-strategyy"
+        course_container(course_key)
 
-        st.subheader("9. Learn an Options Writing Strategy")
-        st.markdown(
-            "[![Learn an Options Writing Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+an+Options+Writing+Strategy.jpeg)](https://learnapp.com/courses/learn-an-options-writing-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-an-options-writing-strategy"
+        course_container(course_key)
 
-        st.subheader("10. Options Program with Backtested Strategies")
-        st.markdown(
-            "[![Options Program with Backtested Strategies](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Options+Program+with+Backtested+Strategies.jpeg)](https://learnapp.com/advanced-courses/options-program-with-backtested-strategies?locale=en-us)"
-        )
-        st.write("")
+        course_key = "options-program-with-backtested-strategies"
+        course_container(course_key)
 
     elif (
         a == "I know how to backtest trading strategies"
         and b == "I want to build my own trading strategy"
     ):
 
-        st.subheader("1. Build Your Trading System")
-        st.markdown(
-            "[![Build Your Trading System](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Build+Your+Trading+System.jpeg)](https://learnapp.com/courses/build-your-trading-system/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "build-your-trading-system"
+        course_container(course_key)
 
     elif (
         a == "I know how to backtest trading strategies"
@@ -1301,22 +1097,42 @@ def create_path(a, b):
         == "I want to get better at managing my risks and psychology during trading"
     ):
 
-        st.subheader("1. Trading Podcasts")
-        st.markdown(
-            "[![Trading Podcasts](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcasts.jpeg)](https://learnapp.com/courses/trading-podcasts/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcasts"
+        course_container(course_key)
 
-        st.subheader("2. Trading Podcast II")
-        st.markdown(
-            "[![Trading Podcast II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcast+II.jpeg)](https://learnapp.com/courses/trading-podcast-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcast-ii"
+        course_container(course_key)
 
-        st.subheader("3. Psychology and Journals")
-        st.markdown(
-            "[![Psychology and Journals](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Psychology+and+Journals.jpg)](https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us)"
-        )
+        course_key = "psychology-and-journals"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
     elif (
@@ -1324,17 +1140,11 @@ def create_path(a, b):
         and b == "I want to learn how to automate trading strategies"
     ):
 
-        st.subheader("1. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
-        st.subheader("2. Python Algo Execution Programme")
-        st.markdown(
-            "[![Python Algo Execution Programme](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Python+Algo+Execution+Programme.jpg)](https://learnapp.com/advanced-courses/python-algo-execution-programme?locale=en-us)"
-        )
-        st.write("")
+        course_key = "python-algo-execution-programme"
+        course_container(course_key)
 
     # I know how to automate trading strategies
 
@@ -1344,41 +1154,23 @@ def create_path(a, b):
         == "I want trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. Basics of Trading")
-        st.markdown(
-            "[![Basics of Trading](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Trading.jpeg)](https://learnapp.com/courses/basics-of-trading/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "basics-of-trading"
+        course_container(course_key)
 
-        st.subheader("2. Learn Intraday Strategy")
-        st.markdown(
-            "[![Learn Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+Intraday+Strategy.jpeg)](https://learnapp.com/courses/learn-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Price Action Strategy")
-        st.markdown(
-            "[![Price Action Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Price+Action+Strategy.jpeg)](https://learnapp.com/courses/price-action-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "price-action-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Intraday Gapup Equity Strategy")
-        st.markdown(
-            "[![Intraday Gapup Equity Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Gapup+Equity+Strategy.jpeg)](https://learnapp.com/courses/intraday-gap-up-equity-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-gap-up-equity-strategy"
+        course_container(course_key)
 
-        st.subheader("5. Long Term Momentum Strategy")
-        st.markdown(
-            "[![Long Term Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Long+Term+Momentum+Strategy.jpeg)](https://learnapp.com/courses/long-term-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "long-term-momentum-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Bullet Momentum Strategy")
-        st.markdown(
-            "[![Bullet Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Bullet+Momentum+Strategy.jpeg)](https://learnapp.com/courses/bullet-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "bullet-momentum-strategy"
+        course_container(course_key)
 
     elif (
         a == "I know how to automate trading strategies"
@@ -1386,76 +1178,43 @@ def create_path(a, b):
         == "I want FNO trading strategies that will help me become a profitable trader"
     ):
 
-        st.subheader("1. BankNifty Weekly Options Strategy")
-        st.markdown(
-            "[![BankNifty Weekly Options Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/BankNifty+Weekly+Options+Strategy.jpeg)](https://learnapp.com/courses/banknifty-weekly-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "banknifty-weekly-options-strategy"
+        course_container(course_key)
 
-        st.subheader("2. Intraday Banknifty Straddle Strategy")
-        st.markdown(
-            "[![Intraday Banknifty Straddle Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Banknifty+Straddle+Strategy.jpeg)](https://learnapp.com/courses/intraday-banknifty-straddle-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-banknifty-straddle-strategy"
+        course_container(course_key)
 
-        st.subheader("3. Intraday Expiry Trading Strategy")
-        st.markdown(
-            "[![Intraday Expiry Trading Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Expiry+Trading+Strategy.jpeg)](https://learnapp.com/courses/intraday-expiry-trading-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-expiry-trading-strategy"
+        course_container(course_key)
 
-        st.subheader("4. Nifty Hedged Short Strangle")
-        st.markdown(
-            "[![Nifty Hedged Short Strangle](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Nifty+Hedged+Short+Strangle.jpeg)](https://learnapp.com/courses/nifty-hedged-short-strangle/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "nifty-hedged-short-strangle"
+        course_container(course_key)
 
-        st.subheader("5. Index Futures Intraday Strategy")
-        st.markdown(
-            "[![Index Futures Intraday Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Index+Futures+Intraday+Strategy.jpeg)](https://learnapp.com/courses/index-futures-intraday-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "index-futures-intraday-strategy"
+        course_container(course_key)
 
-        st.subheader("6. Intraday Option Buying Strategy")
-        st.markdown(
-            "[![Intraday Option Buying Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Intraday+Option+Buying+Strategy.jpeg)](https://learnapp.com/courses/intraday-option-buying-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "intraday-option-buying-strategy"
+        course_container(course_key)
 
-        st.subheader("7. Positional Banknifty Options Stratgey")
-        st.markdown(
-            "[![Positional Banknifty Options Stratgey](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Positional+Banknifty+Options+Stratgey.jpeg)](https://learnapp.com/courses/positional-banknifty-options-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "positional-banknifty-options-strategy"
+        course_container(course_key)
 
-        st.subheader("8. Option Buying Momentum Strategy")
-        st.markdown(
-            "[![Option Buying Momentum Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Option+Buying+Momentum+Strategy.jpeg)](https://learnapp.com/courses/option-buying-momentum-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "option-buying-momentum-strategyy"
+        course_container(course_key)
 
-        st.subheader("9. Learn an Options Writing Strategy")
-        st.markdown(
-            "[![Learn an Options Writing Strategy](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Learn+an+Options+Writing+Strategy.jpeg)](https://learnapp.com/courses/learn-an-options-writing-strategy/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "learn-an-options-writing-strategy"
+        course_container(course_key)
 
-        st.subheader("10. Options Program with Backtested Strategies")
-        st.markdown(
-            "[![Options Program with Backtested Strategies](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Options+Program+with+Backtested+Strategies.jpeg)](https://learnapp.com/advanced-courses/options-program-with-backtested-strategies?locale=en-us)"
-        )
-        st.write("")
+        course_key = "options-program-with-backtested-strategies"
+        course_container(course_key)
 
     elif (
         a == "II know how to automate trading strategies"
         and b == "I want to build my own trading strategy"
     ):
 
-        st.subheader("1. Build Your Trading System")
-        st.markdown(
-            "[![Build Your Trading System](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Build+Your+Trading+System.jpeg)](https://learnapp.com/courses/build-your-trading-system/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "build-your-trading-system"
+        course_container(course_key)
 
     elif (
         a == "I know how to automate trading strategies"
@@ -1463,22 +1222,42 @@ def create_path(a, b):
         == "I want to get better at managing my risks and psychology during trading"
     ):
 
-        st.subheader("1. Trading Podcasts")
-        st.markdown(
-            "[![Trading Podcasts](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcasts.jpeg)](https://learnapp.com/courses/trading-podcasts/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcasts"
+        course_container(course_key)
 
-        st.subheader("2. Trading Podcast II")
-        st.markdown(
-            "[![Trading Podcast II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+Podcast+II.jpeg)](https://learnapp.com/courses/trading-podcast-ii/topics/trailer?locale=en-us)"
-        )
-        st.write("")
+        course_key = "trading-podcast-ii"
+        course_container(course_key)
 
-        st.subheader("3. Psychology and Journals")
-        st.markdown(
-            "[![Psychology and Journals](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Psychology+and+Journals.jpg)](https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us)"
-        )
+        course_key = "psychology-and-journals"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/psychology-and-journals/topics/the-brain-behind-trading--1?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
     elif (
@@ -1486,35 +1265,107 @@ def create_path(a, b):
         and b == "I want to learn how to backtest trading strategies"
     ):
 
-        st.subheader("1. Basics of Backtesting")
-        st.markdown(
-            "[![Basics of Backtesting](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Basics+of+Backtesting.jpeg)](https://learnapp.com/courses/basics-of-backtesting/topics/trailer?locale=en-us)"
-        )
+        course_key = "basics-of-backtesting"
+        course_container(course_key)
+
+        course_key = "trading-and-excel"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("2. Trading and Excel")
-        st.markdown(
-            "[![Trading and Excel](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Trading+and+Excel.jpg)](https://learnapp.com/classes/trading-and-excel/topics/trading-and-excel?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---i"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = f"https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("3. Backtesting Stocks with Indicators - I")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - I](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+I.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---i/topics/backtesting-stocks-with-rsi?locale=en-us)"
-        )
+        course_key = "backtesting-stocks-with-indicators---ii"
+        st.subheader(f"📘 {content_data[course_key]['title']}")
+        canonical_title = content_data[course_key]["canonicalTitle"]
+        course_id = content_data[course_key]["id"]
+        progress = course_progress(name, course_id)
+        if progress == 100:
+            progress = f"✅ {progress}"
+        else:
+            progress = f"📖 {progress}"
+        course_url = "https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(
+                content_data[course_key]["assetUrl"],
+                width=300,
+            )
+
+        with col2:
+
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.write("")
+            st.markdown(
+                f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
+            )
+            st.caption(f"{progress}% completed")
+
         st.write("")
 
-        st.subheader("4. Backtesting Stocks with Indicators - II")
-        st.markdown(
-            "[![Backtesting Stocks with Indicators - II](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Backtesting+Stocks+with+Indicators+-+II.jpg)](https://learnapp.com/classes/backtesting-stocks-with-indicators---ii/topics/backtesting-stocks-with-bollinger-bands?locale=en-us)"
-        )
-        st.write("")
-
-        st.subheader("5. Amibroker Strategy Development and Algo Execution")
-        st.markdown(
-            "[![Amibroker Strategy Development and Algo Execution](https://la-course-recommendation-engine.s3.ap-south-1.amazonaws.com/Amibroker+Strategy+Development+and+Algo+Execution.jpg)](https://learnapp.com/advanced-courses/amibroker-strategy-development-and-algo-execution?locale=en-us)"
-        )
-        st.write("")
+        course_key = "amibroker-strategy-development-and-algo-execution"
+        course_container(course_key)
 
 
 col1, col2, col3 = st.columns(3)
@@ -1532,6 +1383,7 @@ st.write(
     "🎯 Use this tool to create your personalized learning path to help you reach your trading goals in the next 30 days"
 )
 st.write("-----")
+
 name = st.text_input(
     "Enter your LearnApp Registered Email Address",
     help="We use your email address to track progress",

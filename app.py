@@ -1616,45 +1616,50 @@ with tab1:
                 create_path(a, b)
 
     with tab2:
-        st.write("")
-        # fetch user's learning paths
-        try:
-            url_path = "https://3749e8lxlf.execute-api.ap-south-1.amazonaws.com/paths"
-            payload_path = {"Name": name}
-            headers_path = {"Content-Type": "text/plain"}
-            response = requests.request(
-                "GET",
-                url_path,
-                headers=headers_path,
-                data=json.dumps(payload_path),
-            )
+        with st.spinner("Loading your Learning Path"):
+            st.write("")
+            # fetch user's learning paths
+            try:
+                url_path = (
+                    "https://3749e8lxlf.execute-api.ap-south-1.amazonaws.com/paths"
+                )
+                payload_path = {"Name": name}
+                headers_path = {"Content-Type": "text/plain"}
+                response = requests.request(
+                    "GET",
+                    url_path,
+                    headers=headers_path,
+                    data=json.dumps(payload_path),
+                )
 
-            data = json.loads(response.text)
-            learning_paths = [i["lp_name"] for i in data]
+                data = json.loads(response.text)
+                learning_paths = [i["lp_name"] for i in data]
 
-            selected_path = st.selectbox(
-                "Choose one of your committed learning paths",
-                learning_paths,
-                help="Learning Path is a collection of courses on LearnApp which you need to complete step by step to achieve your trading goals",
-            )
-            st.write("-----")
-
-            a1 = [i["where_i_stand"] for i in data if i["lp_name"] == selected_path]
-            b1 = [
-                i["where_i_want_to_be"] for i in data if i["lp_name"] == selected_path
-            ]
-            if selected_path != None:
-                st.subheader("🚀 Your Personalized Learning Path")
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.write("Need help completing this learning path?")
-                with col2:
-                    st.subheader("➡➡➡➡➡➡➡")
-                with col3:
-                    st.markdown(
-                        "[![Join our club](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-14-oct-22-la-announcement-ahmad-qureshi/e4a09bb4-2e6d-4ec4-8b94-34011ca24f2e.png)](https://join.slack.com/t/learnappsubscribers/shared_invite/zt-1j944zbnr-2rbea2tVYJJF_gNTOoq9Bg)"
-                    )
+                selected_path = st.selectbox(
+                    "Choose one of your committed learning paths",
+                    learning_paths,
+                    help="Learning Path is a collection of courses on LearnApp which you need to complete step by step to achieve your trading goals",
+                )
                 st.write("-----")
-                create_path(a1[0], b1[0])
-        except:
-            st.error("You haven't created any Learning Paths yet!")
+
+                a1 = [i["where_i_stand"] for i in data if i["lp_name"] == selected_path]
+                b1 = [
+                    i["where_i_want_to_be"]
+                    for i in data
+                    if i["lp_name"] == selected_path
+                ]
+                if selected_path != None:
+                    st.subheader("🚀 Your Personalized Learning Path")
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.write("Need help completing this learning path?")
+                    with col2:
+                        st.subheader("➡➡➡➡➡➡➡")
+                    with col3:
+                        st.markdown(
+                            "[![Join our club](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-14-oct-22-la-announcement-ahmad-qureshi/e4a09bb4-2e6d-4ec4-8b94-34011ca24f2e.png)](https://join.slack.com/t/learnappsubscribers/shared_invite/zt-1j944zbnr-2rbea2tVYJJF_gNTOoq9Bg)"
+                        )
+                    st.write("-----")
+                    create_path(a1[0], b1[0])
+            except:
+                st.error("You haven't created any Learning Paths yet!")

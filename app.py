@@ -1580,7 +1580,6 @@ with tab1:
 
         else:
             with st.spinner("Creating Learning Path for you"):
-                time.sleep(1.5)
 
                 if commit:
                     # store data in database

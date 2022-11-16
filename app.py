@@ -1529,7 +1529,7 @@ with tab1:
             c = "Get started with trading"
 
         elif b == "I want to dive deeper into technical analysis":
-            c = "Learn Technical Anlaysis"
+            c = "Learn Technical Analysis"
 
         elif (
             b

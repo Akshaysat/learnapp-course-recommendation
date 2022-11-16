@@ -530,7 +530,7 @@ def create_path(a, b):
         course_key = "positional-banknifty-options-strategy"
         course_container(course_key)
 
-        course_key = "option-buying-momentum-strategyy"
+        course_key = "option-buying-momentum-strategy"
         course_container(course_key)
 
         course_key = "learn-an-options-writing-strategy"
@@ -744,7 +744,7 @@ def create_path(a, b):
         course_key = "positional-banknifty-options-strategy"
         course_container(course_key)
 
-        course_key = "option-buying-momentum-strategyy"
+        course_key = "option-buying-momentum-strategy"
         course_container(course_key)
 
         course_key = "learn-an-options-writing-strategy"
@@ -850,7 +850,7 @@ def create_path(a, b):
         course_key = "positional-banknifty-options-strategy"
         course_container(course_key)
 
-        course_key = "option-buying-momentum-strategyy"
+        course_key = "option-buying-momentum-strategy"
         course_container(course_key)
 
         course_key = "learn-an-options-writing-strategy"
@@ -1074,7 +1074,7 @@ def create_path(a, b):
         course_key = "positional-banknifty-options-strategy"
         course_container(course_key)
 
-        course_key = "option-buying-momentum-strategyy"
+        course_key = "option-buying-momentum-strategy"
         course_container(course_key)
 
         course_key = "learn-an-options-writing-strategy"
@@ -1199,7 +1199,7 @@ def create_path(a, b):
         course_key = "positional-banknifty-options-strategy"
         course_container(course_key)
 
-        course_key = "option-buying-momentum-strategyy"
+        course_key = "option-buying-momentum-strategy"
         course_container(course_key)
 
         course_key = "learn-an-options-writing-strategy"

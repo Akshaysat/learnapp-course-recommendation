@@ -6,6 +6,7 @@ from unicodedata import name
 import streamlit as st
 import requests
 import pandas as pd
+import datetime as dt
 
 # hide streamlit branding and hamburger menu
 hide_streamlit_style = """
@@ -76,10 +77,10 @@ def course_container(course_key):
     canonical_title = content_data[course_key]["canonicalTitle"]
     course_id = content_data[course_key]["id"]
     progress = course_progress(name, course_id)
-    if progress == 100:
-        progress = f"✅ {progress}"
+    if progress >= 85:
+        progress_str = f"✅ {progress}"
     else:
-        progress = f"📖 {progress}"
+        progress_str = f"📖 {progress}"
     course_url = (
         f"https://learnapp.com/courses/{canonical_title}/topics/trailer?locale=en-us"
     )
@@ -101,7 +102,7 @@ def course_container(course_key):
         st.markdown(
             f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-15-nov-22-la-announcement-akriti-singh/5e7bcdd4-039a-4a0f-a255-7c48d3993eaa.png)]({course_url})"
         )
-        st.caption(f"{progress}% completed")
+        st.caption(f"{progress_str}% completed")
 
     st.write("")
 
@@ -1384,9 +1385,15 @@ st.write(
 )
 st.write("-----")
 
-name = st.text_input(
-    "Enter your LearnApp Registered Email Address",
-    help="We use your email address to track progress",
+name = (
+    (
+        st.text_input(
+            "Enter your LearnApp Registered Email Address",
+            help="We use your email address to track progress",
+        )
+    )
+    .strip()
+    .lower()
 )
 st.write("")
 
@@ -1663,3 +1670,110 @@ with tab1:
                     create_path(a1[0], b1[0])
             except:
                 st.error("You haven't created any Learning Paths yet!")
+
+
+# Admin dashboard
+if name == "product@learnapp.com":
+
+    # check if token expired or not
+    if fetch_userid(name) == -1:
+        st.error("token expired")
+    else:
+        st.success("token is fine!")
+
+    # function to get all users data
+    def get_all_data():
+        url = "https://6tdvr200th.execute-api.ap-south-1.amazonaws.com/"
+
+        payload = {}
+
+        headers = {"Content-Type": "text/plain"}
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=headers,
+            data=json.dumps(payload),
+        )
+
+        data = json.loads(response.text)
+
+        return data
+
+    # visalization
+    def color_survived(val):
+
+        if float(val) >= 0 and float(val) < 25:
+            color = "#FF0000"
+
+        elif float(val) >= 25 and float(val) < 50:
+            color = "#ff9900"
+
+        elif float(val) >= 50 and float(val) < 75:
+            color = "#FFCC00"
+
+        elif float(val) >= 75 and float(val) < 100:
+            color = "#00FF00"
+
+        return f"color: {color}"
+
+    st.subheader("Course Recommendation Experiment Stats")
+    curr_date = dt.date.today().strftime("%Y-%m-%d")
+    data = get_all_data()
+    df = pd.DataFrame(data)
+    df["total_courses"] = df["total_courses"].astype(str)
+    df["completed_courses"] = df["completed_courses"].astype(str)
+
+    df["completed/total"] = df["completed_courses"] + "/" + df["total_courses"]
+    df["lp_progress_%"] = df["learning_path_progress"].apply(
+        lambda x: str(round(x[curr_date], 2))
+    )
+
+    final_df = df[
+        [
+            "Name",
+            "lp_name",
+            # "total_courses",
+            # "completed_courses",
+            "completed/total",
+            "lp_progress_%",
+        ]
+    ]
+    metric_df = df[df["user_type"] == "Paid User"]
+
+    percentile_25 = metric_df[
+        (metric_df["lp_progress_%"].astype(float) >= 0)
+        & (metric_df["lp_progress_%"].astype(float) < 25)
+    ].shape[0]
+
+    percentile_50 = metric_df[
+        (metric_df["lp_progress_%"].astype(float) >= 25)
+        & (metric_df["lp_progress_%"].astype(float) < 50)
+    ].shape[0]
+
+    percentile_75 = metric_df[
+        (metric_df["lp_progress_%"].astype(float) >= 50)
+        & (metric_df["lp_progress_%"].astype(float) < 75)
+    ].shape[0]
+
+    percentile_100 = metric_df[
+        (metric_df["lp_progress_%"].astype(float) >= 75)
+        & (metric_df["lp_progress_%"].astype(float) <= 100)
+    ].shape[0]
+
+    st.write("-----")
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Learning Paths", value=metric_df.shape[0])
+    col2.metric("Total Unique Users", value=metric_df["Name"].nunique())
+    col3.metric("Success %", round((percentile_100 / metric_df.shape[0]) * 100, 2))
+
+    st.write("-----")
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("25th percentile", value=percentile_25)
+    col2.metric("50th percentile", value=percentile_50)
+    col3.metric("75th percentile", value=percentile_75)
+    col4.metric("100th percentile", value=percentile_100)
+    st.write("-----")
+    st.table(final_df.style.applymap(color_survived, subset=["lp_progress_%"]))

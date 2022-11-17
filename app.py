@@ -1717,7 +1717,9 @@ if name == "product@learnapp.com":
 
         return f"color: {color}"
 
-    st.subheader("Course Recommendation Experiment Stats")
+    expt_day = (dt.datetime.today() - dt.datetime(2022, 11, 14)).days
+    st.header(f"Course Recommendation Experiment Day {expt_day}")
+
     curr_date = dt.date.today().strftime("%Y-%m-%d")
     data = get_all_data()
     df = pd.DataFrame(data)

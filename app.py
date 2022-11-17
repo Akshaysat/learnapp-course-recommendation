@@ -1751,13 +1751,13 @@ if name == "product@learnapp.com":
         & (metric_df["lp_progress_%"].astype(float) < 50)
     ].shape[0]
 
-    percentile_75 = metric_df[
+    percentile_85 = metric_df[
         (metric_df["lp_progress_%"].astype(float) >= 50)
-        & (metric_df["lp_progress_%"].astype(float) < 75)
+        & (metric_df["lp_progress_%"].astype(float) < 85)
     ].shape[0]
 
     percentile_100 = metric_df[
-        (metric_df["lp_progress_%"].astype(float) >= 75)
+        (metric_df["lp_progress_%"].astype(float) >= 85)
         & (metric_df["lp_progress_%"].astype(float) <= 100)
     ].shape[0]
 
@@ -1773,7 +1773,7 @@ if name == "product@learnapp.com":
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("25th percentile", value=percentile_25)
     col2.metric("50th percentile", value=percentile_50)
-    col3.metric("75th percentile", value=percentile_75)
+    col3.metric("75th percentile", value=percentile_85)
     col4.metric("100th percentile", value=percentile_100)
     st.write("-----")
     st.table(final_df.style.applymap(color_survived, subset=["lp_progress_%"]))

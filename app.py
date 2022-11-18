@@ -1736,12 +1736,7 @@ if name == "product@learnapp.com":
 
     metric_df = df[df["user_type"] == "Paid User"]
     metric_df = metric_df[
-        [
-            "Name",
-            "lp_name",
-            "completed/total",
-            "lp_progress_%",
-        ]
+        ["Name", "lp_name", "completed/total", "lp_progress_%", "phone_number"]
     ]
 
     percentile_25 = metric_df[
@@ -1765,11 +1760,18 @@ if name == "product@learnapp.com":
     ].shape[0]
 
     st.write("-----")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("Total Learning Paths", value=metric_df.shape[0])
     col2.metric("Total Unique Users", value=metric_df["Name"].nunique())
     col3.metric("Success %", round((percentile_100 / metric_df.shape[0]) * 100, 2))
+    col4.metric(
+        "Success Users",
+        value=metric_df[
+            (metric_df["lp_progress_%"].astype(float) >= 85)
+            & (metric_df["lp_progress_%"].astype(float) <= 100)
+        ]["Name"].nunique(),
+    )
 
     st.write("-----")
 

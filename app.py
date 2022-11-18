@@ -1723,10 +1723,13 @@ if name == "product@learnapp.com":
     curr_date = dt.date.today().strftime("%Y-%m-%d")
     data = get_all_data()
     df = pd.DataFrame(data)
+
     df["total_courses"] = df["total_courses"].astype(str)
     df["completed_courses"] = df["completed_courses"].astype(str)
 
     df["completed/total"] = df["completed_courses"] + "/" + df["total_courses"]
+    df.dropna(inplace=True)
+
     df["lp_progress_%"] = df["learning_path_progress"].apply(
         lambda x: str(round(x[list(x.keys())[-1]], 2))
     )

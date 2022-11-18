@@ -1728,20 +1728,18 @@ if name == "product@learnapp.com":
 
     df["completed/total"] = df["completed_courses"] + "/" + df["total_courses"]
     df["lp_progress_%"] = df["learning_path_progress"].apply(
-        lambda x: str(round(x[curr_date], 2))
+        lambda x: str(round(x[list(x.keys())[-1]], 2))
     )
 
-    final_df = df[
+    metric_df = df[df["user_type"] == "Paid User"]
+    metric_df = metric_df[
         [
             "Name",
             "lp_name",
-            # "total_courses",
-            # "completed_courses",
             "completed/total",
             "lp_progress_%",
         ]
     ]
-    metric_df = df[df["user_type"] == "Paid User"]
 
     percentile_25 = metric_df[
         (metric_df["lp_progress_%"].astype(float) >= 0)
@@ -1778,4 +1776,5 @@ if name == "product@learnapp.com":
     col3.metric("85th percentile", value=percentile_85)
     col4.metric("100th percentile", value=percentile_100)
     st.write("-----")
-    st.table(final_df.style.applymap(color_survived, subset=["lp_progress_%"]))
+
+    st.dataframe(metric_df.style.applymap(color_survived, subset=["lp_progress_%"]))

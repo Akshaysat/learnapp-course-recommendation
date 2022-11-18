@@ -8,6 +8,12 @@ import requests
 import pandas as pd
 import datetime as dt
 
+# set page config
+st.set_page_config(
+    page_title="LearnApp",
+    page_icon="favicon.png",
+)
+
 # hide streamlit branding and hamburger menu
 hide_streamlit_style = """
             <style>
@@ -16,6 +22,7 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 
 # set today's date and time
 curr_time_dec = time.localtime(time.time())

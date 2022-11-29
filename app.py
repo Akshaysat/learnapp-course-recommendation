@@ -128,7 +128,7 @@ def workshop_container(day_no, date, workshop_name, workshop_jpeg):
     st.subheader(f"📘 {day_no}: {workshop_name}")
     st.write(f"📅 {date}")
     st.write(f"🕒 09:00 AM")
-    st.write("🔴 Task: Attend the live class and share your learnings!")
+    st.write("🚨 Task: Attend the live class and share your learnings!")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -144,7 +144,7 @@ def workshop_container(day_no, date, workshop_name, workshop_jpeg):
         st.write("")
         st.write("")
         st.markdown(
-            f"[![Play Now](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-17-nov-22-options-course-email/1e91b7d7-e629-45cd-8a66-06c15bbdaa26.png)](https://www.google.com)"
+            f"[![Register](https://s3.ap-south-1.amazonaws.com/messenger.prod.learnapp.com/emails/newsLetters-17-nov-22-options-course-email/d1fe4b84-9661-4a70-b06d-d7431b8a5799.png)](https://www.google.com)"
         )
 
     # col1, col2, col3 = st.columns(3)
@@ -181,7 +181,11 @@ try:
     email_id = st.experimental_get_query_params()["email"][0]
 except:
     email_id = (
-        st.text_input("Enter your LearnApp Registered Email Address").strip().lower()
+        st.text_input(
+            "Enter your LearnApp Registered Email Address to know your progress"
+        )
+        .strip()
+        .lower()
     )
 st.write("---")
 

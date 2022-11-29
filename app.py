@@ -20,7 +20,6 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-
 # set today's date and time
 curr_time_dec = time.localtime(time.time())
 date = time.strftime("%Y-%m-%d", curr_time_dec)

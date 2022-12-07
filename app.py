@@ -27,13 +27,14 @@ content_data = json.load(f)
 f.close()
 
 # functions for getting user specific course progress
-url = "https://68o9pf66q0.execute-api.ap-south-1.amazonaws.com/"
+url = "https://e3d72bp6aa.execute-api.ap-south-1.amazonaws.com/"
 payload = {}
 headers = {}
 response = requests.request("GET", url, headers=headers, data=payload)
 access_token = response.text
 
 token = "Bearer " + access_token
+
 
 def fetch_userid(email):
     email = email.replace("@", "%40")
